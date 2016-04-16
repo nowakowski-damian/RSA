@@ -1,20 +1,18 @@
-package rsa;
+package com.thirteendolars.windows;
 
+import com.thirteendolars.RSA;
+import com.thirteendolars.windows.InfoDialog;
+import com.thirteendolars.windows.FileChooserDialog;
 import java.awt.Toolkit;
-import javax.jnlp.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.BufferedWriter;
-import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.Scanner;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
 import javax.swing.GroupLayout;
 import javax.swing.JButton;
 import javax.swing.JCheckBoxMenuItem;
@@ -32,18 +30,20 @@ import javax.swing.JTextField;
 import javax.swing.LayoutStyle;
 import javax.swing.SwingConstants;
 import javax.swing.WindowConstants;
+import javax.swing.event.MenuEvent;
+import javax.swing.event.MenuListener;
+import sun.rmi.runtime.Log;
 
 /**
  *
  * @author damian
  */
-public class MainWindow extends JFrame implements ActionListener{
+public abstract class MainWindow extends JFrame implements ActionListener{
 	
 
     
     private static final long serialVersionUID = 1L;
     private FileChooserDialog chooseDialog;
-    
     
     private JButton generateKeyButton;
     private JButton inOpenFromFileButton;
@@ -65,30 +65,31 @@ public class MainWindow extends JFrame implements ActionListener{
     
 
     private JMenuBar jMenuBar1;
-    private JMenu infoMenu;
+    private JButton infoMenu;
     private JMenu modeMenu;
     private JCheckBoxMenuItem decryptModeItem;
     private JCheckBoxMenuItem encryptModeItem;
     
-    private JProgressBar jProgressBar1;
+    private JProgressBar progressBar;
    
     private JScrollPane jScrollPane1;
     private JScrollPane jScrollPane2;
     
-    private JSpinner jSpinner1;
+    private KeyLengthSpinner keyLengthSpinner;
     
-    private JTextArea inputTextArea;
-    private JTextArea outputTextArea;
+    private  JTextArea inputTextArea;
+    private  JTextArea outputTextArea;
     
-    private JTextField publicKeyTextField;
-    private JTextField privateKeyTextField;
+    private  JTextField publicKeyTextField;
+    private  JTextField privateKeyTextField;
 
 
     public MainWindow() {
         createMainViews();
         setActionsListeners();
-        chooseDialog=new FileChooserDialog(MainWindow.this);
-       
+        chooseDialog=new FileChooserDialog(this);
+        this.setLocationRelativeTo(null);
+        this.setTitle("RSA Encryption/Decryption");
     }
 
   
@@ -103,12 +104,12 @@ public class MainWindow extends JFrame implements ActionListener{
         outputTextArea = new JTextArea();
         outputLabel = new JLabel();
         outSaveToFileButton = new JButton();
-        jProgressBar1 = new JProgressBar();
+        progressBar = new JProgressBar();
         statusLabel = new JLabel();
         startButton = new JButton();
         generateKeysLabel = new JLabel();
         keyLengthLabel = new JLabel();
-        jSpinner1 = new JSpinner();
+        keyLengthSpinner = new KeyLengthSpinner();
         generateKeyButton = new JButton();
         pubKeyLabel = new JLabel();
         pubKeyFromFileButton = new JButton();
@@ -122,14 +123,14 @@ public class MainWindow extends JFrame implements ActionListener{
         modeMenu = new JMenu();
         encryptModeItem = new JCheckBoxMenuItem();
         decryptModeItem = new JCheckBoxMenuItem();
-        infoMenu = new JMenu();
+        infoMenu = new JButton();
 
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 
         inputLabel.setFont(new java.awt.Font("Noto Sans", 1, 14)); // NOI18N
         inputLabel.setText("Input");
 
-        inSaveToFileButton.setText("Save");
+        inSaveToFileButton.setText("Save...");
 
         inOpenFromFileButton.setText("Open...");
 
@@ -145,12 +146,12 @@ public class MainWindow extends JFrame implements ActionListener{
         outputLabel.setFont(new java.awt.Font("Noto Sans", 1, 14)); // NOI18N
         outputLabel.setText("Output");
 
-        outSaveToFileButton.setText("Save");
+        outSaveToFileButton.setText("Save...");
 
         statusLabel.setHorizontalAlignment(SwingConstants.CENTER);
         statusLabel.setText("Status");
 
-        startButton.setText("START");
+        startButton.setText("START ENCRYPTION");
 
         generateKeysLabel.setFont(new java.awt.Font("Noto Sans", 1, 14)); // NOI18N
         generateKeysLabel.setText("Generate your own keys");
@@ -179,16 +180,23 @@ public class MainWindow extends JFrame implements ActionListener{
         encryptModeItem.setText("Encryption");
         modeMenu.add(encryptModeItem);
 
-        decryptModeItem.setSelected(true);
+        decryptModeItem.setSelected(false);
         decryptModeItem.setText("Decryption");
         modeMenu.add(decryptModeItem);
 
         jMenuBar1.add(modeMenu);
 
         infoMenu.setText("Info");
+        infoMenu.setContentAreaFilled(false);
+        infoMenu.setBorder(null);
+        infoMenu.setAlignmentY( 0.6f);
+        
         jMenuBar1.add(infoMenu);
 
         setJMenuBar(jMenuBar1);
+        
+        progressBar.setMinimum(0);
+        progressBar.setMaximum(100);
 
         GroupLayout layout = new GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -198,7 +206,7 @@ public class MainWindow extends JFrame implements ActionListener{
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
                     .addComponent(statusLabel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jProgressBar1, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(progressBar, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(startButton, GroupLayout.Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(generateKeysLabel, GroupLayout.Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addGroup(layout.createSequentialGroup()
@@ -209,7 +217,7 @@ public class MainWindow extends JFrame implements ActionListener{
                         .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
                             .addComponent(privKeyFromFileButton, GroupLayout.DEFAULT_SIZE, 101, Short.MAX_VALUE)
-                            .addComponent(jSpinner1)
+                            .addComponent(keyLengthSpinner)
                             .addComponent(pubKeyFromFileButton, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                         .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
                         .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
@@ -246,7 +254,7 @@ public class MainWindow extends JFrame implements ActionListener{
                 .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(jProgressBar1, GroupLayout.PREFERRED_SIZE, 20, GroupLayout.PREFERRED_SIZE)
+                        .addComponent(progressBar, GroupLayout.PREFERRED_SIZE, 20, GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(statusLabel, GroupLayout.PREFERRED_SIZE, 23, GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
@@ -263,7 +271,7 @@ public class MainWindow extends JFrame implements ActionListener{
                         .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING, false)
                             .addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-                                .addComponent(jSpinner1, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                                .addComponent(keyLengthSpinner, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
                                 .addComponent(generateKeyButton))
                             .addComponent(keyLengthLabel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                         .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
@@ -287,8 +295,23 @@ public class MainWindow extends JFrame implements ActionListener{
         pack();
     }
     
+    private void setActionsListeners(){
     
-    private void showErrorWindow(String mssg) {
+    generateKeyButton.addActionListener(this);
+    inOpenFromFileButton.addActionListener(this);
+    inSaveToFileButton.addActionListener(this);
+    outSaveToFileButton.addActionListener(this);
+    privKeyFromFileButton.addActionListener(this);
+    savePrivKeyButton.addActionListener(this);
+    savePubKeyButton.addActionListener(this);
+    startButton.addActionListener(this);
+    pubKeyFromFileButton.addActionListener(this);
+    decryptModeItem.addActionListener(this);
+    encryptModeItem.addActionListener(this);
+    infoMenu.addActionListener(this);
+    }
+    
+    protected void showErrorWindow(String mssg) {
         
     Toolkit.getDefaultToolkit().beep();
     JOptionPane optionPane = new JOptionPane(mssg,JOptionPane.ERROR_MESSAGE);
@@ -299,7 +322,7 @@ public class MainWindow extends JFrame implements ActionListener{
         
     }
     
-    private void showInfoWindow(String mssg) { 
+    protected void showInfoWindow(String mssg) { 
     Toolkit.getDefaultToolkit().beep();
     JOptionPane optionPane = new JOptionPane(mssg,JOptionPane.INFORMATION_MESSAGE);
     JDialog dialog = optionPane.createDialog("Information");
@@ -307,35 +330,15 @@ public class MainWindow extends JFrame implements ActionListener{
     dialog.setVisible(true);  
     }
     
-    
-    private void setActionsListeners(){
-        
-    generateKeyButton.addActionListener(this);
-    inOpenFromFileButton.addActionListener(this);
-    inSaveToFileButton.addActionListener(this);
-    outSaveToFileButton.addActionListener(this);
-    privKeyFromFileButton.addActionListener(this);
-    savePrivKeyButton.addActionListener(this);
-    savePubKeyButton.addActionListener(this);
-    startButton.addActionListener(this);
-    pubKeyFromFileButton.addActionListener(this);
-       
-    }
-
-    
-   
-    
-  
-
-    
     @Override
     public void actionPerformed(ActionEvent e) {
         
+
         // Input from file
         if( e.getSource() == inOpenFromFileButton ){
             File chosenFile=chooseDialog.showOpenDialog(FileChooserDialog.FOR_IN_OUT_TEXT);
             if( chosenFile!= null ){
-                openInputText( chosenFile.getPath() );
+                inputTextArea.setText( openInputText( chosenFile.getPath() ) );
             }
         }
          
@@ -343,7 +346,7 @@ public class MainWindow extends JFrame implements ActionListener{
         else if( e.getSource() == inSaveToFileButton ){
            File chosenFile=chooseDialog.showSaveDialog(FileChooserDialog.FOR_INPUT_TEXT);
             if( chosenFile != null ){
-                saveInputText( chosenFile.getPath()) ;
+                saveInputText( chosenFile.getPath() , inputTextArea.getText() ) ;
             }
         }
         
@@ -351,7 +354,7 @@ public class MainWindow extends JFrame implements ActionListener{
         else if( e.getSource() == outSaveToFileButton ){
             File chosenFile=chooseDialog.showSaveDialog(FileChooserDialog.FOR_OUTPUT_TEXT);
             if( chosenFile != null ){
-                saveOutputText( chosenFile.getPath() );
+                saveOutputText( chosenFile.getPath() , outputTextArea.getText() );
             }
         }
         
@@ -359,7 +362,7 @@ public class MainWindow extends JFrame implements ActionListener{
         else if( e.getSource() == savePubKeyButton ){
             File chosenFile=chooseDialog.showSaveDialog(FileChooserDialog.FOR_PUB_KEY);
             if( chosenFile != null ){
-                savePublicKey( chosenFile.getPath() );
+                savePublicKey( chosenFile.getPath() , publicKeyTextField.getText() );
             }
         }
         
@@ -367,7 +370,7 @@ public class MainWindow extends JFrame implements ActionListener{
         else if( e.getSource() == savePrivKeyButton ){
             File chosenFile=chooseDialog.showSaveDialog(FileChooserDialog.FOR_PRIV_KEY);
             if( chosenFile != null ){
-                savePrivateKey( chosenFile.getPath() );
+                savePrivateKey( chosenFile.getPath() , privateKeyTextField.getText() );
             }
         }
         
@@ -375,7 +378,7 @@ public class MainWindow extends JFrame implements ActionListener{
         else if( e.getSource() == pubKeyFromFileButton ){
             File chosenFile=chooseDialog.showOpenDialog(FileChooserDialog.FOR_PUB_KEY);
             if( chosenFile != null ){
-                openPublicKey( chosenFile.getPath() );
+                publicKeyTextField.setText( openPublicKey( chosenFile.getPath() ) );
             }
         }
         
@@ -383,177 +386,74 @@ public class MainWindow extends JFrame implements ActionListener{
         else if( e.getSource() == privKeyFromFileButton){
             File chosenFile=chooseDialog.showOpenDialog(FileChooserDialog.FOR_PRIV_KEY);
             if( chosenFile != null ){
-                openPrivateKey( chosenFile.getPath() );
+                privateKeyTextField.setText( openPrivateKey( chosenFile.getPath() ) );
             }        
         }
+        
+        // Generate keys
+        else if(e.getSource() == generateKeyButton){
+            int keyLength= (int) keyLengthSpinner.getValue();
+            String pubKey = generatePubKey(keyLength);
+            String privKey = generatePrivKey(keyLength);
+            publicKeyTextField.setText(pubKey);
+            privateKeyTextField.setText(privKey);
+        }
+        
+        // Start work
+        else if(e.getSource() == startButton ){
+            
+            String inputText=inputTextArea.getName();
+            String key;
+            switch( RSA.MODE ){
+                case RSA.ENCRYPTION: key=publicKeyTextField.getText(); break;
+                case RSA.DECRYPTION: key=privateKeyTextField.getText(); break;  
+                default: key="";    
+            }
+            String output = startRSA(key,inputText);
+            outputTextArea.setText(output);
+        }
+        else if( e.getSource() == decryptModeItem ){
+            encryptModeItem.setSelected(false); 
+            decryptModeItem.setSelected(true);
+            startButton.setText("START DECRYPTION");
+            RSA.MODE=RSA.DECRYPTION;
+        }
+        else if( e.getSource() == encryptModeItem ){
+            decryptModeItem.setSelected(false);
+            encryptModeItem.setSelected(true);
+            startButton.setText("START ENCRYPTION");
+            RSA.MODE=RSA.ENCRYPTION;
+        }
+        else if( e.getSource() == infoMenu ){
+            new InfoDialog(MainWindow.this).setVisible(true);
+        }
+   
     }
 
+
+    protected void setProgressBar(int progress){
+        progressBar.setValue(progress);
+    }
     
-    private void saveInputText(String directory) {
-        
-        String text;
-        text=inputTextArea.getText();
-        
-        BufferedWriter writer = null;
-        try
-        {
-            File file = new File(directory+"."+RSA.INPUT_EXTENSION);
-            writer = new BufferedWriter( new FileWriter(file));
-            writer.write( text );
+    protected abstract void saveInputText(String directory,String inputText);
 
-        }
-        catch ( IOException e)
-        {
-            showErrorWindow("Cannot save input text, try again.");
-            
-        }
-        finally
-        {
-            try
-            {
-                if ( writer != null){
-                writer.close( );
-                showInfoWindow("Input saved succesfully");
-                }
-                
-            }
-            catch ( IOException e)
-            {
-                showErrorWindow("Cannot save input text, try again.");
-            }
-        }
+    protected abstract String  openInputText(String directory);
 
-        
-    }
+    protected abstract void saveOutputText(String directory,String outputText);
 
-    private void openInputText(String directory){
-        try {
-            String text= new String(Files.readAllBytes(Paths.get(directory)));
-            inputTextArea.setText(text);
-        } catch (IOException ex) {
-           showErrorWindow("Cannot open input text, try again.");
-        }
-        
-    }
+    protected abstract void  savePublicKey(String directory,String publicKey);
 
-    private void saveOutputText(String directory){
-        
-        String text;
-        text=outputTextArea.getText();
-        
-        BufferedWriter writer = null;
-        try
-        {
-            File file = new File(directory+"."+RSA.OUTPUT_EXTENSION);
-            writer = new BufferedWriter( new FileWriter(file));
-            writer.write( text );
+    protected abstract void  savePrivateKey(String directory,String privateKey); 
 
-        }
-        catch ( IOException e)
-        {
-            showErrorWindow("Cannot save output text, try again.");
-            
-        }
-        finally
-        {
-            try
-            {
-                if ( writer != null)
-                writer.close( );
-                showInfoWindow("Output saved succesfully");
-            }
-            catch ( IOException e)
-            {
-                showErrorWindow("Cannot save output text, try again.");
-            }
-        }
-      
-        
-    }
+    protected abstract String openPublicKey(String directory);
 
-    private void savePublicKey(String directory) {
-        
-        String key;
-        key=publicKeyTextField.getText();
-        
-        BufferedWriter writer = null;
-        try
-        {
-            File file = new File(directory+"."+RSA.PUB_KEY_EXTENSION);
-            writer = new BufferedWriter( new FileWriter(file));
-            writer.write( key);
+    protected abstract String openPrivateKey(String directory);
 
-        }
-        catch ( IOException e)
-        {
-            showErrorWindow("Cannot save public key try again.");
-            
-        }
-        finally
-        {
-            try
-            {
-                if ( writer != null)
-                writer.close( );
-                showInfoWindow("Key saved succesfully");
-            }
-            catch ( IOException e)
-            {
-                showErrorWindow("Cannot save public key try again.");
-            }
-        }
-    }
+    protected abstract String generatePubKey(int keyLength);
 
-    private void savePrivateKey(String directory) {
-        String key;
-        key=privateKeyTextField.getText();
-        
-        BufferedWriter writer = null;
-        try
-        {
-            File file = new File(directory+"."+RSA.PRIV_KEY_EXTENSION);
-            writer = new BufferedWriter( new FileWriter(file));
-            writer.write( key);
+    protected abstract String generatePrivKey(int keyLength);
 
-        }
-        catch ( IOException e)
-        {
-            showErrorWindow("Cannot save private key try again.");
-            
-        }
-        finally
-        {
-            try
-            {
-                if ( writer != null)
-                writer.close( );
-                showInfoWindow("Key saved succesfully");
-            }
-            catch ( IOException e)
-            {
-                showErrorWindow("Cannot save private key try again.");
-            }
-        }
-        
-    }
-
-    private void openPublicKey(String directory) {
-        try {
-            String key= new String(Files.readAllBytes(Paths.get(directory)));
-            publicKeyTextField.setText(key);
-        } catch (IOException ex) {
-           showErrorWindow("Cannot open public key, try again.");
-        }  
-    }
-
-    private void openPrivateKey(String directory) {
-        try {
-            String key= new String(Files.readAllBytes(Paths.get(directory)));
-            privateKeyTextField.setText(key);
-        } catch (IOException ex) {
-           showErrorWindow("Cannot open private key, try again.");
-        }        
-    }
+    protected abstract String startRSA(String key, String inputText);
 
 
     
