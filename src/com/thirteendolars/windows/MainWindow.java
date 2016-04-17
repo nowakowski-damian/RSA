@@ -433,6 +433,7 @@ public abstract class MainWindow extends JFrame implements ActionListener{
 
     protected void setProgressBar(int progress){
         progressBar.setValue(progress);
+        statusLabel.setText(progress+" %");
     }
     
     protected abstract void saveInputText(String directory,String inputText);

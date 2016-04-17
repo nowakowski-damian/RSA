@@ -17,6 +17,7 @@ public class KeyLengthSpinner extends JSpinner{
     public KeyLengthSpinner(){
         super();
         ( (DefaultEditor)this.getEditor() ).getTextField().setEditable(false);
+        this.setValue(64);
     }
     
     
@@ -28,11 +29,16 @@ public class KeyLengthSpinner extends JSpinner{
         
         Integer currentValue = (Integer) getValue();
 
-        if( currentValue.equals(Integer.valueOf(30))) return 20;
-        if( currentValue.equals(Integer.valueOf(20))) return 10;
-        if( currentValue.equals(Integer.valueOf(10))) return 0;
+        if( currentValue.equals(Integer.valueOf(8192))) return 4096;
+        if( currentValue.equals(Integer.valueOf(4096))) return 2048;
+        if( currentValue.equals(Integer.valueOf(2048))) return 1024;
+        if( currentValue.equals(Integer.valueOf(1024))) return 512;
+        if( currentValue.equals(Integer.valueOf(512))) return 256;
+        if( currentValue.equals(Integer.valueOf(256))) return 128;
+        if( currentValue.equals(Integer.valueOf(128))) return 64;
         
-        return 0;
+        
+        return 64;
     }
 
     @Override
@@ -40,11 +46,16 @@ public class KeyLengthSpinner extends JSpinner{
         
         Integer currentValue = (Integer) getValue();
 
-        if( currentValue.equals(Integer.valueOf(0))) return 10;
-        if( currentValue.equals(Integer.valueOf(10))) return 20;
-        if( currentValue.equals(Integer.valueOf(20))) return 30;
+        if( currentValue.equals(Integer.valueOf(64))) return 128;
+        if( currentValue.equals(Integer.valueOf(128))) return 256;
+        if( currentValue.equals(Integer.valueOf(256))) return 512;
+        if( currentValue.equals(Integer.valueOf(512))) return 1024;
+        if( currentValue.equals(Integer.valueOf(1024))) return 2048;
+        if( currentValue.equals(Integer.valueOf(2048))) return 4096;
+        if( currentValue.equals(Integer.valueOf(4096))) return 8192;
         
-        return 30;
+        
+        return 8192;
     }
    
     
