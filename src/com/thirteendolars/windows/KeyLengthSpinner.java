@@ -17,7 +17,7 @@ public class KeyLengthSpinner extends JSpinner{
     public KeyLengthSpinner(){
         super();
         ( (DefaultEditor)this.getEditor() ).getTextField().setEditable(false);
-        this.setValue(64);
+        this.setValue(256);
     }
     
     
@@ -36,7 +36,7 @@ public class KeyLengthSpinner extends JSpinner{
         if( currentValue.equals(Integer.valueOf(512))) return 256;
         if( currentValue.equals(Integer.valueOf(256))) return 128;
         if( currentValue.equals(Integer.valueOf(128))) return 64;
-        
+       
         
         return 64;
     }

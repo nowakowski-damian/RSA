@@ -29,10 +29,11 @@ public class RSA extends MainWindow {
     
     public static int MODE;
     
-    
+    private AlgorithmRSA RSAManager;
     
     public RSA(){
         RSA.MODE = ENCRYPTION;
+        RSAManager=new AlgorithmRSA( (MainWindow)this );
     }
 
    
@@ -216,37 +217,51 @@ public class RSA extends MainWindow {
         return key;
     }
 
+    @Override
+    protected synchronized void generateKeys(int keyLength) {
+        
+        new Thread(new Runnable() {
+
+            @Override
+            public void run() {
+                RSAManager.generateKeys(keyLength);
+                setPublicKey(  RSAManager.getPublicKey() );
+                setPrivateKey( RSAManager.getPrivateKey() );
+            }
+        }).start();
+ 
+    }
     
     
-    @Override
-    protected String generatePubKey(int keyLength) {
-        String pubKey="";
-        
-      
-        
-        
-        return pubKey;
-    }
 
-    @Override
-    protected String generatePrivKey(int keyLength) {
-               String privKey="";
-        
-      
-               
-               
-        return privKey;
-    }
-
+    
     @Override
     protected String startRSA(String key, String inputText) {
-        String out="";
         
+       String out="";
         
-        
-        
+        switch(MODE){
+            
+            case ENCRYPTION:
+                
+                RSAManager.setPublicKey(key);
+                out=RSAManager.encrypt(inputText);
+                break;
+                
+            case DECRYPTION:
+                
+                RSAManager.setPrivateKey(key);
+                out=RSAManager.decrypt(inputText);
+                break;
+                
+                
+        }
+            
+    
         return out;
     }
+
+
 
 
     
