@@ -238,6 +238,20 @@ public class RSA extends MainWindow {
     @Override
     protected String startRSA(String key, String inputText) {
         
+        
+        // Check data correctness
+        if( key.isEmpty() || !key.contains(",") || key.length()<10 ){
+            showErrorWindow("Your key is invalid.");
+            return "";
+        }
+        
+        if( inputText.isEmpty() ){
+            showErrorWindow("Your input is empty.");
+            return "";
+        }
+        
+        // if data are correct, continue
+        
        String out="";
         
         switch(MODE){

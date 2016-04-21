@@ -104,21 +104,24 @@ public class AlgorithmRSA {
   
  public synchronized void generateKeys(int keyLength) {
      
-    setProgress(5);
+    mContext.setGenerateKeysEnabled(false);
+    mContext.setStartEnabled(false);
+    mContext.setMenuEnabled(false);
+    setProgress(1);
     
     mKeyLength=keyLength;  
     SecureRandom rand = new SecureRandom();
     
-    setProgress(10);
-    startCountProgress(40);
+    setProgress(3);
+    startCountProgress(40,keyLength);
     BigInteger pValue = new BigInteger(keyLength/2, CERTAINTY, rand); // long last
     mProgressTimer.cancel();
     setProgress(40);
-    startCountProgress(80);
+    startCountProgress(70,keyLength);
     BigInteger qValue = new BigInteger(keyLength/2, CERTAINTY, rand);  // long last
     mProgressTimer.cancel();
-    setProgress(80);
-    startCountProgress(95);
+    setProgress(70);
+    startCountProgress(95,keyLength);
     
     n = pValue.multiply(qValue); //   n=p*q
     
@@ -129,7 +132,7 @@ public class AlgorithmRSA {
     e = new BigInteger(keyLength/2, CERTAINTY, rand);       // long last
     mProgressTimer.cancel();
     setProgress(95);
-    startCountProgress(99);
+    startCountProgress(99,keyLength);
     int i=0;
     while ( value.gcd(e).intValue() != 1 ) {
       e = e.subtract(new BigInteger("2") );
@@ -142,11 +145,14 @@ public class AlgorithmRSA {
     mPrivateKey= d.toString(16) +","+n.toString(16);
     mPublicKey=  e.toString(16) +","+n.toString(16);
     mProgressTimer.cancel();
+    mContext.setGenerateKeysEnabled(true);
+    mContext.setStartEnabled(true);
+    mContext.setMenuEnabled(true);
     setProgress(100);
   }
  
  
- private void startCountProgress(int max) {
+ private void startCountProgress(int max,int keyLength) {
      
      mProgressTimer = new Timer();
      TimerTask task = new TimerTask() {
@@ -161,8 +167,34 @@ public class AlgorithmRSA {
              
          }
 
-     };             
-     mProgressTimer.scheduleAtFixedRate(task, 0, 200);
+     }; 
+     
+     int period;
+     
+     switch(keyLength){
+         
+         case 64: period=1;
+             break;
+         case 128: period=2;
+             break;
+         case 256: period=5;
+             break;
+         case 512:  period=10;
+             break;
+         case 1024: period=20;
+             break;
+         case 2048: period=70;
+             break;
+         case 4096: period=200;
+             break;
+         case 8192: period=550;
+             break;
+         case 16384: period=22000;
+             break;
+         default: period=200;
+  
+     }
+     mProgressTimer.scheduleAtFixedRate(task, 0,period );
    
  }
      

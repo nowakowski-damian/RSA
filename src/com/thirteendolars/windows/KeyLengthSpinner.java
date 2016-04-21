@@ -29,6 +29,7 @@ public class KeyLengthSpinner extends JSpinner{
         
         Integer currentValue = (Integer) getValue();
 
+        if( currentValue.equals(Integer.valueOf(16384))) return 8192;
         if( currentValue.equals(Integer.valueOf(8192))) return 4096;
         if( currentValue.equals(Integer.valueOf(4096))) return 2048;
         if( currentValue.equals(Integer.valueOf(2048))) return 1024;
@@ -53,9 +54,10 @@ public class KeyLengthSpinner extends JSpinner{
         if( currentValue.equals(Integer.valueOf(1024))) return 2048;
         if( currentValue.equals(Integer.valueOf(2048))) return 4096;
         if( currentValue.equals(Integer.valueOf(4096))) return 8192;
+        if( currentValue.equals(Integer.valueOf(8192))) return 16384;
         
         
-        return 8192;
+        return 16384;
     }
    
     

@@ -397,15 +397,19 @@ public abstract class MainWindow extends JFrame implements ActionListener {
             String output = startRSA(key, inputText);
             outputTextArea.setText(output);
         } else if (e.getSource() == decryptModeItem) {
+            
             encryptModeItem.setSelected(false);
             decryptModeItem.setSelected(true);
             startButton.setText("START DECRYPTION");
             this.setTitle("RSA - Decryption");
+            setEncryptionViewsEnabled(false);
             RSA.MODE = RSA.DECRYPTION;
         } else if (e.getSource() == encryptModeItem) {
             decryptModeItem.setSelected(false);
             encryptModeItem.setSelected(true);
+            startButton.setText("START ENCRYPTION");
             this.setTitle("RSA - Encryption");
+            setEncryptionViewsEnabled(true);
             RSA.MODE = RSA.ENCRYPTION;
         } else if (e.getSource() == infoMenu) {
             new InfoDialog(MainWindow.this).setVisible(true);
@@ -414,8 +418,8 @@ public abstract class MainWindow extends JFrame implements ActionListener {
     }
 
     public void setProgressBar(int progress) {
-        progressBar.setValue(progress);
         statusLabel.setText(progress + " %");
+        progressBar.setValue(progress);
     }
 
     protected int getKeyLength() {
@@ -455,5 +459,44 @@ public abstract class MainWindow extends JFrame implements ActionListener {
     protected abstract void generateKeys(int keyLength);
 
     protected abstract String startRSA(String key, String inputText);
+
+    private void setEncryptionViewsEnabled(boolean encryptionEnabled) {
+        
+            pubKeyFromFileButton.setEnabled(encryptionEnabled);
+            publicKeyTextField.setEnabled(encryptionEnabled);
+            savePubKeyButton.setEnabled(encryptionEnabled);
+            generateKeyButton.setEnabled(encryptionEnabled);
+            keyLengthSpinner.setEnabled(encryptionEnabled);
+            generateKeysLabel.setEnabled(encryptionEnabled);
+            keyLengthLabel.setEnabled(encryptionEnabled);
+            pubKeyLabel.setEnabled(encryptionEnabled);
+    }
+    
+    public void setGenerateKeysEnabled(boolean generateKeysEnabled){
+        
+        
+            pubKeyFromFileButton.setEnabled(generateKeysEnabled);
+            publicKeyTextField.setEnabled(generateKeysEnabled);
+            savePubKeyButton.setEnabled(generateKeysEnabled);
+            generateKeyButton.setEnabled(generateKeysEnabled);
+            keyLengthSpinner.setEnabled(generateKeysEnabled);
+            generateKeysLabel.setEnabled(generateKeysEnabled);
+            keyLengthLabel.setEnabled(generateKeysEnabled);
+            pubKeyLabel.setEnabled(generateKeysEnabled);
+            privKeyFromFileButton.setEnabled(generateKeysEnabled);
+            privKeyLabel.setEnabled(generateKeysEnabled);
+            privateKeyTextField.setEnabled(generateKeysEnabled);;
+            savePrivKeyButton.setEnabled(generateKeysEnabled);   
+    }
+    
+    public void setStartEnabled(boolean setStartEnabled){
+        startButton.setEnabled(setStartEnabled);
+    }
+    
+    public void setMenuEnabled(boolean setMenuEnabled){
+        modeMenu.setEnabled(setMenuEnabled);
+    }
+    
+    
 
 }
