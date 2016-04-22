@@ -89,7 +89,7 @@ public abstract class MainWindow extends JFrame implements ActionListener {
         setActionsListeners();
         chooseDialog = new FileChooserDialog(this);
         this.setLocationRelativeTo(null);
-        this.setMinimumSize(new Dimension(800, 450));
+        this.setMinimumSize(new Dimension(800, 500));
         this.setTitle("RSA - Encryption");
     }
 
