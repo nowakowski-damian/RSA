@@ -86,27 +86,11 @@ public abstract class MainWindow extends JFrame implements ActionListener {
         setActionsListeners();
         chooseDialog = new FileChooserDialog(this);
         this.setLocationRelativeTo(null);
-        this.setMinimumSize(new Dimension(800, 550));
+        this.setMinimumSize(new Dimension(850, 550));
         this.setTitle("RSA Simulator");
     }
     
     
-
-//    @Override
-//     public void paint(Graphics graph) {
-//        super.paint(graph);
-//        try {
-//            Image background = ImageIO.read( new File(MainWindow.class.getResource("/back.jpg").getPath() ) );
-//            graph.drawImage(background, 0, 0, this);
-//            
-//        } catch (IOException ex) {
-//            Logger.getLogger(MainWindow.class.getName()).log(Level.SEVERE, null, ex);
-//        }
-//    }
-     
-     
-     
-     
 
     private void createMainViews() {
 
@@ -216,20 +200,6 @@ public abstract class MainWindow extends JFrame implements ActionListener {
         GroupLayout layout = new GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         
-//        getContentPane().add( new JPanel(){
-//            @Override
-//            protected void paintComponent(Graphics graph) {
-//                super.paintComponent(graph); //To change body of generated methods, choose Tools | Templates.
-//                try {
-//                    Image background = ImageIO.read( new File(MainWindow.class.getResource("/back.jpg").getPath() ) );
-//                    graph.drawImage(background, 0, 0, MainWindow.this);
-//
-//                } catch (IOException ex) {
-//                    Logger.getLogger(MainWindow.class.getName()).log(Level.SEVERE, null, ex);
-//                }
-//            }
-//            
-//        });
         
         layout.setHorizontalGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
                 .addGroup(layout.createSequentialGroup()
