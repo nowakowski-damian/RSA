@@ -1,40 +1,30 @@
 package com.thirteendolars.windows;
 
 import com.thirteendolars.RSA;
-import com.thirteendolars.windows.InfoDialog;
-import com.thirteendolars.windows.FileChooserDialog;
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.BufferedWriter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-
 import javax.swing.GroupLayout;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
-import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
-import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JOptionPane;
 import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
-import javax.swing.JSpinner;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.LayoutStyle;
 import javax.swing.SwingConstants;
 import javax.swing.WindowConstants;
-import javax.swing.event.MenuEvent;
-import javax.swing.event.MenuListener;
-import sun.rmi.runtime.Log;
 
 /**
  *
@@ -52,8 +42,13 @@ public abstract class MainWindow extends JFrame implements ActionListener {
     private JButton privKeyFromFileButton;
     private JButton savePrivKeyButton;
     private JButton savePubKeyButton;
-    private JButton startButton;
+    private JButton startEncryptionButton;
+    private JButton startDecryptionButton;
     private JButton pubKeyFromFileButton;
+    
+    private JLabel swapIcon;
+    private JLabel inputCleanIcon;
+    private JLabel outputCleanIcon;
 
     private JLabel generateKeysLabel;
     private JLabel inputLabel;
@@ -65,9 +60,6 @@ public abstract class MainWindow extends JFrame implements ActionListener {
 
     private JMenuBar jMenuBar1;
     private JButton infoMenu;
-    private JMenu modeMenu;
-    private JCheckBoxMenuItem decryptModeItem;
-    private JCheckBoxMenuItem encryptModeItem;
 
     private JProgressBar progressBar;
 
@@ -79,19 +71,42 @@ public abstract class MainWindow extends JFrame implements ActionListener {
     private JTextArea inputTextArea;
     private JTextArea outputTextArea;
 
-    private JTextField publicKeyTextField;
+    private JTextField publicKeyETextField;
+    private JTextField publicKeyNTextField;
     private JTextField privateKeyTextField;
     
-    
+    private JScrollPane publicKeyETextScroll;
+    private JScrollPane publicKeyNTextScroll;
+    private JScrollPane privateKeyTextScroll;
+         
 
     public MainWindow() {
         createMainViews();
+        setColors();
         setActionsListeners();
         chooseDialog = new FileChooserDialog(this);
         this.setLocationRelativeTo(null);
-        this.setMinimumSize(new Dimension(800, 500));
-        this.setTitle("RSA - Encryption");
+        this.setMinimumSize(new Dimension(800, 550));
+        this.setTitle("RSA Simulator");
     }
+    
+    
+
+//    @Override
+//     public void paint(Graphics graph) {
+//        super.paint(graph);
+//        try {
+//            Image background = ImageIO.read( new File(MainWindow.class.getResource("/back.jpg").getPath() ) );
+//            graph.drawImage(background, 0, 0, this);
+//            
+//        } catch (IOException ex) {
+//            Logger.getLogger(MainWindow.class.getName()).log(Level.SEVERE, null, ex);
+//        }
+//    }
+     
+     
+     
+     
 
     private void createMainViews() {
 
@@ -106,7 +121,8 @@ public abstract class MainWindow extends JFrame implements ActionListener {
         outSaveToFileButton = new JButton();
         progressBar = new JProgressBar();
         statusLabel = new JLabel();
-        startButton = new JButton();
+        startEncryptionButton = new JButton();
+        startDecryptionButton = new JButton();
         generateKeysLabel = new JLabel();
         keyLengthLabel = new JLabel();
         keyLengthSpinner = new KeyLengthSpinner();
@@ -117,13 +133,20 @@ public abstract class MainWindow extends JFrame implements ActionListener {
         privKeyLabel = new JLabel();
         savePrivKeyButton = new JButton();
         privKeyFromFileButton = new JButton();
-        publicKeyTextField = new JTextField();
+        publicKeyETextField = new JTextField();
+        publicKeyNTextField = new JTextField();
         privateKeyTextField = new JTextField();
+        privateKeyTextScroll = new JScrollPane(privateKeyTextField);
+        privateKeyTextScroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+        publicKeyETextScroll = new JScrollPane(publicKeyETextField);
+        publicKeyETextScroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+        publicKeyNTextScroll = new JScrollPane(publicKeyNTextField);
+        publicKeyNTextScroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
         jMenuBar1 = new JMenuBar();
-        modeMenu = new JMenu();
-        encryptModeItem = new JCheckBoxMenuItem();
-        decryptModeItem = new JCheckBoxMenuItem();
         infoMenu = new JButton();
+        swapIcon = new JLabel(new ImageIcon(MainWindow.class.getResource("/swap_icon.png")));
+        inputCleanIcon = new JLabel(new ImageIcon(MainWindow.class.getResource("/clean_icon.png")));
+        outputCleanIcon = new JLabel(new ImageIcon(MainWindow.class.getResource("/clean_icon.png")));
 
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 
@@ -136,10 +159,14 @@ public abstract class MainWindow extends JFrame implements ActionListener {
 
         inputTextArea.setColumns(20);
         inputTextArea.setRows(5);
+        inputTextArea.setLineWrap(true);
+        inputTextArea.setWrapStyleWord(true);
         jScrollPane1.setViewportView(inputTextArea);
 
         outputTextArea.setColumns(20);
         outputTextArea.setRows(5);
+        outputTextArea.setLineWrap(true);
+        outputTextArea.setWrapStyleWord(true);
         jScrollPane2.setViewportView(outputTextArea);
 
         outputLabel.setFont(new java.awt.Font("Noto Sans", 1, 14)); // NOI18N
@@ -150,7 +177,8 @@ public abstract class MainWindow extends JFrame implements ActionListener {
         statusLabel.setHorizontalAlignment(SwingConstants.CENTER);
         statusLabel.setText("Status");
 
-        startButton.setText("START ENCRYPTION");
+        startEncryptionButton.setText("START ENCRYPTION");
+        startDecryptionButton.setText("START DECRYPTION");
 
         generateKeysLabel.setFont(new java.awt.Font("Noto Sans", Font.BOLD, 14)); // NOI18N
         generateKeysLabel.setText("Generate your own keys");
@@ -158,6 +186,7 @@ public abstract class MainWindow extends JFrame implements ActionListener {
         keyLengthLabel.setText("Length [bits]");
 
         generateKeyButton.setText("Generate");
+        generateKeyButton.setForeground( new Color(0,120,0) );
 
         pubKeyLabel.setFont(new java.awt.Font("Noto Sans", 1, 14)); // NOI18N
         pubKeyLabel.setText("Public Key (e,n)");
@@ -167,31 +196,18 @@ public abstract class MainWindow extends JFrame implements ActionListener {
         savePubKeyButton.setText("Save...");
 
         privKeyLabel.setFont(new java.awt.Font("Noto Sans", 1, 14)); // NOI18N
-        privKeyLabel.setText("Private Key (d,n)");
+        privKeyLabel.setText("Private Key (d)");
 
         savePrivKeyButton.setText("Save...");
 
         privKeyFromFileButton.setText("Open...");
 
-        modeMenu.setText("Mode");
-
-        encryptModeItem.setSelected(true);
-        encryptModeItem.setText("Encryption");
-        modeMenu.add(encryptModeItem);
-
-        decryptModeItem.setSelected(false);
-        decryptModeItem.setText("Decryption");
-        modeMenu.add(decryptModeItem);
-
-        jMenuBar1.add(modeMenu);
-
-        infoMenu.setText("Info");
+        infoMenu.setText(" Info");
         infoMenu.setContentAreaFilled(false);
         infoMenu.setBorder(null);
         infoMenu.setAlignmentY(0.6f);
 
         jMenuBar1.add(infoMenu);
-
         setJMenuBar(jMenuBar1);
 
         progressBar.setMinimum(0);
@@ -200,14 +216,29 @@ public abstract class MainWindow extends JFrame implements ActionListener {
         GroupLayout layout = new GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         
-        layout.setHorizontalGroup(
-                layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+//        getContentPane().add( new JPanel(){
+//            @Override
+//            protected void paintComponent(Graphics graph) {
+//                super.paintComponent(graph); //To change body of generated methods, choose Tools | Templates.
+//                try {
+//                    Image background = ImageIO.read( new File(MainWindow.class.getResource("/back.jpg").getPath() ) );
+//                    graph.drawImage(background, 0, 0, MainWindow.this);
+//
+//                } catch (IOException ex) {
+//                    Logger.getLogger(MainWindow.class.getName()).log(Level.SEVERE, null, ex);
+//                }
+//            }
+//            
+//        });
+        
+        layout.setHorizontalGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
                 .addGroup(layout.createSequentialGroup()
                         .addContainerGap()
                         .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
                                 .addComponent(statusLabel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                 .addComponent(progressBar, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                .addComponent(startButton, GroupLayout.Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(startEncryptionButton, GroupLayout.Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(startDecryptionButton, GroupLayout.Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                 .addComponent(generateKeysLabel, GroupLayout.Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                 .addGroup(layout.createSequentialGroup()
                                         .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
@@ -224,45 +255,60 @@ public abstract class MainWindow extends JFrame implements ActionListener {
                                                 .addComponent(savePrivKeyButton, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                                 .addComponent(generateKeyButton, GroupLayout.DEFAULT_SIZE, 101, Short.MAX_VALUE)
                                                 .addComponent(savePubKeyButton, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
-                                .addComponent(publicKeyTextField,200,300,Short.MAX_VALUE)
-                                .addComponent(privateKeyTextField,200,300,Short.MAX_VALUE))
+                                .addComponent(publicKeyETextScroll,200,300,Short.MAX_VALUE)
+                                .addComponent(publicKeyNTextScroll,200,300,Short.MAX_VALUE)
+                                .addComponent(privateKeyTextScroll,200,300,Short.MAX_VALUE))
                         .addGap(30, 30, 30)
                         .addGroup(layout.createParallelGroup(GroupLayout.Alignment.TRAILING)
                                 .addComponent(jScrollPane1)
                                 .addGroup(GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
-                                        .addComponent(outputLabel, GroupLayout.DEFAULT_SIZE, 214, Short.MAX_VALUE)
+                                        
                                         .addGap(298, 298, 298))
                                 .addComponent(jScrollPane2, GroupLayout.DEFAULT_SIZE, 512, Short.MAX_VALUE)
                                 .addGroup(layout.createSequentialGroup()
-                                        .addComponent(inputLabel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                        .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                                        .addComponent(inOpenFromFileButton, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                        
+                                        .addGroup(layout.createParallelGroup(GroupLayout.Alignment.TRAILING,false)
+                                            .addComponent(inputCleanIcon, 30, 30, 30)
+                                            .addComponent(outputCleanIcon, 30, 30, 30))
+                                        .addGroup(layout.createParallelGroup(GroupLayout.Alignment.TRAILING,false)
+                                            .addComponent(inputLabel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                            .addComponent(outputLabel, GroupLayout.DEFAULT_SIZE, 214, Short.MAX_VALUE))
+                                        .addGroup(layout.createParallelGroup(GroupLayout.Alignment.TRAILING)
+                                            .addComponent(inOpenFromFileButton, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                            .addComponent(swapIcon, 30, 30, 30))
                                         .addGap(18, 18, 18)
                                         .addGroup(layout.createParallelGroup(GroupLayout.Alignment.TRAILING)
                                                 .addComponent(inSaveToFileButton, GroupLayout.Alignment.LEADING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                                 .addComponent(outSaveToFileButton, GroupLayout.Alignment.LEADING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
                         .addGap(20, 20, 20))
         );
-        layout.setVerticalGroup(
-                layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+        layout.setVerticalGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
                 .addGroup(layout.createSequentialGroup()
                         .addGap(6, 6, 6)
-                        .addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                        
+                        .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING, false)
                                 .addComponent(inSaveToFileButton)
                                 .addComponent(inOpenFromFileButton)
-                                .addComponent(inputLabel, GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE))
+                                .addComponent(inputCleanIcon, 30, 30, 30)
+                                .addComponent(inputLabel,GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        
                         .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                        
                         .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
                                 .addGroup(layout.createSequentialGroup()
                                         .addComponent(progressBar, GroupLayout.PREFERRED_SIZE, 20, GroupLayout.PREFERRED_SIZE)
                                         .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
                                         .addComponent(statusLabel, GroupLayout.PREFERRED_SIZE, 23, GroupLayout.PREFERRED_SIZE)
                                         .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                        .addComponent(startButton, GroupLayout.PREFERRED_SIZE, 57, GroupLayout.PREFERRED_SIZE))
+                                        .addComponent(startEncryptionButton, GroupLayout.PREFERRED_SIZE, 35, GroupLayout.PREFERRED_SIZE)
+                                        .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                                        .addComponent(startDecryptionButton, GroupLayout.PREFERRED_SIZE, 35, GroupLayout.PREFERRED_SIZE))
                                 .addComponent(jScrollPane1, GroupLayout.DEFAULT_SIZE, 123, Short.MAX_VALUE))
                         .addGap(26, 26, 26)
                         .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING, false)
                                 .addComponent(outSaveToFileButton, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(swapIcon, 30, 30, 30)
+                                .addComponent(outputCleanIcon, 30, 30, 30)
                                 .addComponent(outputLabel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                         .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
@@ -280,14 +326,16 @@ public abstract class MainWindow extends JFrame implements ActionListener {
                                                 .addComponent(savePubKeyButton)
                                                 .addComponent(pubKeyLabel))
                                         .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                                        .addComponent(publicKeyTextField, GroupLayout.PREFERRED_SIZE, 27, GroupLayout.PREFERRED_SIZE)
+                                        .addComponent(publicKeyETextScroll, GroupLayout.PREFERRED_SIZE, 42, GroupLayout.PREFERRED_SIZE)
+                                        .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                                        .addComponent(publicKeyNTextScroll, GroupLayout.PREFERRED_SIZE, 42, GroupLayout.PREFERRED_SIZE)
                                         .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
                                         .addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
                                                 .addComponent(savePrivKeyButton)
                                                 .addComponent(privKeyFromFileButton)
                                                 .addComponent(privKeyLabel, GroupLayout.PREFERRED_SIZE, 31, GroupLayout.PREFERRED_SIZE))
                                         .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                                        .addComponent(privateKeyTextField, GroupLayout.PREFERRED_SIZE, 27, GroupLayout.PREFERRED_SIZE))
+                                        .addComponent(privateKeyTextScroll, GroupLayout.PREFERRED_SIZE, 42, GroupLayout.PREFERRED_SIZE))
                                 .addComponent(jScrollPane2))
                         .addGap(32, 32, 32))
         );
@@ -304,11 +352,60 @@ public abstract class MainWindow extends JFrame implements ActionListener {
         privKeyFromFileButton.addActionListener(this);
         savePrivKeyButton.addActionListener(this);
         savePubKeyButton.addActionListener(this);
-        startButton.addActionListener(this);
+        startEncryptionButton.addActionListener(this);
+        startDecryptionButton.addActionListener(this);
         pubKeyFromFileButton.addActionListener(this);
-        decryptModeItem.addActionListener(this);
-        encryptModeItem.addActionListener(this);
         infoMenu.addActionListener(this);
+        swapIcon.addMouseListener(new MouseListener() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                // swap input text for output text 
+                String inputText = inputTextArea.getText();
+                String outputText = outputTextArea.getText();
+                inputTextArea.setText( outputText );
+                outputTextArea.setText( inputText );      
+            }
+            @Override
+            public void mousePressed(MouseEvent e) {}
+            @Override
+            public void mouseReleased(MouseEvent e) {}
+            @Override
+            public void mouseEntered(MouseEvent e) {}
+            @Override
+            public void mouseExited(MouseEvent e) {}
+        });
+        
+        inputCleanIcon.addMouseListener(new MouseListener() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                // clear input text
+                inputTextArea.setText("");     
+            }
+            @Override
+            public void mousePressed(MouseEvent e) {}
+            @Override
+            public void mouseReleased(MouseEvent e) {}
+            @Override
+            public void mouseEntered(MouseEvent e) {}
+            @Override
+            public void mouseExited(MouseEvent e) {}
+        });
+                
+      outputCleanIcon.addMouseListener(new MouseListener() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                // clear output text
+                outputTextArea.setText("");      
+            }
+            @Override
+            public void mousePressed(MouseEvent e) {}
+            @Override
+            public void mouseReleased(MouseEvent e) {}
+            @Override
+            public void mouseEntered(MouseEvent e) {}
+            @Override
+            public void mouseExited(MouseEvent e) {}
+        });
     }
 
     protected void showErrorWindow(String mssg) {
@@ -355,7 +452,7 @@ public abstract class MainWindow extends JFrame implements ActionListener {
         else if (e.getSource() == savePubKeyButton) {
             File chosenFile = chooseDialog.showSaveDialog(FileChooserDialog.FOR_PUB_KEY);
             if (chosenFile != null) {
-                savePublicKey(chosenFile.getPath(), publicKeyTextField.getText());
+                savePublicKey(chosenFile.getPath(), publicKeyETextField.getText(), publicKeyNTextField.getText());
             }
         } // Private key to file
         else if (e.getSource() == savePrivKeyButton) {
@@ -367,51 +464,38 @@ public abstract class MainWindow extends JFrame implements ActionListener {
         else if (e.getSource() == pubKeyFromFileButton) {
             File chosenFile = chooseDialog.showOpenDialog(FileChooserDialog.FOR_PUB_KEY);
             if (chosenFile != null) {
-                publicKeyTextField.setText(openPublicKey(chosenFile.getPath()));
+                String keyE = openPublicKeyE( chosenFile.getPath() );
+                String keyN = openPublicKeyN( chosenFile.getPath() );
+                if( !keyE.isEmpty() ){
+                    publicKeyETextField.setText( keyE );
+                }
+                if( !keyN.isEmpty() ){
+                    publicKeyNTextField.setText( keyN );
+                }
             }
         } // Private key from file
         else if (e.getSource() == privKeyFromFileButton) {
             File chosenFile = chooseDialog.showOpenDialog(FileChooserDialog.FOR_PRIV_KEY);
             if (chosenFile != null) {
-                privateKeyTextField.setText(openPrivateKey(chosenFile.getPath()));
+                String key= openPrivateKey(chosenFile.getPath());
+                if( !key.isEmpty() ){
+                    privateKeyTextField.setText( key );
+                }
             }
         } // Generate keys
         else if (e.getSource() == generateKeyButton) {
             int keyLength = (int) keyLengthSpinner.getValue();
             generateKeys(keyLength);
-        } // Start work
-        else if (e.getSource() == startButton) {
-
-            String inputText = inputTextArea.getText();
-            String key;
-            switch (RSA.MODE) {
-                case RSA.ENCRYPTION:
-                    key = publicKeyTextField.getText();
-                    break;
-                case RSA.DECRYPTION:
-                    key = privateKeyTextField.getText();
-                    break;
-                default:
-                    key = "";
-            }
-            String output = startRSA(key, inputText);
-            outputTextArea.setText(output);
-        } else if (e.getSource() == decryptModeItem) {
-            
-            encryptModeItem.setSelected(false);
-            decryptModeItem.setSelected(true);
-            startButton.setText("START DECRYPTION");
-            this.setTitle("RSA - Decryption");
-            setEncryptionViewsEnabled(false);
-            RSA.MODE = RSA.DECRYPTION;
-        } else if (e.getSource() == encryptModeItem) {
-            decryptModeItem.setSelected(false);
-            encryptModeItem.setSelected(true);
-            startButton.setText("START ENCRYPTION");
-            this.setTitle("RSA - Encryption");
-            setEncryptionViewsEnabled(true);
+        } // Start encryption
+        else if (e.getSource() == startEncryptionButton) {
             RSA.MODE = RSA.ENCRYPTION;
-        } else if (e.getSource() == infoMenu) {
+            startAlgorithm();
+        } // Start decryption
+        else if (e.getSource() == startDecryptionButton) {
+            RSA.MODE = RSA.DECRYPTION;
+            startAlgorithm();
+        } // Show info dialog
+        else if (e.getSource() == infoMenu) {
             new InfoDialog(MainWindow.this).setVisible(true);
         }
 
@@ -426,16 +510,20 @@ public abstract class MainWindow extends JFrame implements ActionListener {
         return (int) keyLengthSpinner.getValue();
     }
 
-    protected void setPublicKey(String pubKey) {
-        publicKeyTextField.setText(pubKey);
+    protected void setPublicKeyE(String pubKeyE) {
+        publicKeyETextField.setText(pubKeyE);
+    }
+    
+    protected void setPublicKeyN(String pubKeyN) {
+       publicKeyNTextField.setText(pubKeyN);
     }
 
-    protected void setPrivateKey(String privKey) {
+    protected void setPrivateKeyD(String privKey) {
         privateKeyTextField.setText(privKey);
     }
 
     protected void getPublicKey(String pubKey) {
-        publicKeyTextField.getText();
+        publicKeyETextField.getText();
     }
 
     protected void getPrivateKey(String privKey) {
@@ -448,53 +536,58 @@ public abstract class MainWindow extends JFrame implements ActionListener {
 
     protected abstract void saveOutputText(String directory, String outputText);
 
-    protected abstract void savePublicKey(String directory, String publicKey);
+    protected abstract void savePublicKey(String directory, String keyE, String keyN);
 
     protected abstract void savePrivateKey(String directory, String privateKey);
 
-    protected abstract String openPublicKey(String directory);
+    protected abstract String openPublicKeyE(String directory);
+    
+    protected abstract String openPublicKeyN(String directory);
 
     protected abstract String openPrivateKey(String directory);
 
     protected abstract void generateKeys(int keyLength);
 
-    protected abstract String startRSA(String key, String inputText);
+    protected abstract String startRSA(String keyEorD, String keyN, String inputText);
+    
+     public void setButtonsEnabled(boolean setStartEnabled){
+        startEncryptionButton.setEnabled(setStartEnabled);
+        startDecryptionButton.setEnabled(setStartEnabled);
+        keyLengthSpinner.setEnabled(setStartEnabled);
+        generateKeyButton.setEnabled(setStartEnabled);
+        pubKeyFromFileButton.setEnabled(setStartEnabled);
+        privKeyFromFileButton.setEnabled(setStartEnabled);
+    }
+    
+    private void startAlgorithm() {
+        
+        String inputText = inputTextArea.getText();
+        String keyN = publicKeyNTextField.getText();
+        String keyEorD;
+        switch (RSA.MODE) {
+            case RSA.ENCRYPTION:
+                keyEorD = publicKeyETextField.getText();
+                break;
+            case RSA.DECRYPTION:
+                keyEorD = privateKeyTextField.getText();
+                break;
+            default:
+                keyEorD = "";
+                keyN = "";
+        }
+        String output = startRSA(keyEorD,keyN,inputText);
+        outputTextArea.setText(output);
+    }
 
-    private void setEncryptionViewsEnabled(boolean encryptionEnabled) {
-        
-            pubKeyFromFileButton.setEnabled(encryptionEnabled);
-            publicKeyTextField.setEnabled(encryptionEnabled);
-            savePubKeyButton.setEnabled(encryptionEnabled);
-            generateKeyButton.setEnabled(encryptionEnabled);
-            keyLengthSpinner.setEnabled(encryptionEnabled);
-            generateKeysLabel.setEnabled(encryptionEnabled);
-            keyLengthLabel.setEnabled(encryptionEnabled);
-            pubKeyLabel.setEnabled(encryptionEnabled);
-    }
-    
-    public void setGenerateKeysEnabled(boolean generateKeysEnabled){
-        
-        
-            pubKeyFromFileButton.setEnabled(generateKeysEnabled);
-            publicKeyTextField.setEnabled(generateKeysEnabled);
-            savePubKeyButton.setEnabled(generateKeysEnabled);
-            generateKeyButton.setEnabled(generateKeysEnabled);
-            keyLengthSpinner.setEnabled(generateKeysEnabled);
-            generateKeysLabel.setEnabled(generateKeysEnabled);
-            keyLengthLabel.setEnabled(generateKeysEnabled);
-            pubKeyLabel.setEnabled(generateKeysEnabled);
-            privKeyFromFileButton.setEnabled(generateKeysEnabled);
-            privKeyLabel.setEnabled(generateKeysEnabled);
-            privateKeyTextField.setEnabled(generateKeysEnabled);;
-            savePrivKeyButton.setEnabled(generateKeysEnabled);   
-    }
-    
-    public void setStartEnabled(boolean setStartEnabled){
-        startButton.setEnabled(setStartEnabled);
-    }
-    
-    public void setMenuEnabled(boolean setMenuEnabled){
-        modeMenu.setEnabled(setMenuEnabled);
+    private void setColors() {
+        startEncryptionButton.setForeground( new Color(190,0,0) );
+        startDecryptionButton.setForeground( new Color(190,0,0) );
+        inputTextArea.setBackground( new Color(240,240,240,255) );
+        outputTextArea.setBackground( new Color(240,240,240,255) );
+        publicKeyETextField.setBackground( new Color(240,240,240,255) );
+        publicKeyNTextField.setBackground( new Color(240,240,240,255) );
+        privateKeyTextField.setBackground( new Color(240,240,240,255) );
+        getContentPane().setBackground( new Color(220,225,220,255) );
     }
     
     

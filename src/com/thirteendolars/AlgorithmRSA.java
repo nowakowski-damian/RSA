@@ -28,50 +28,44 @@ public class AlgorithmRSA {
   private BigInteger d;
   private BigInteger e;
 
-  private String mPublicKey;
-  private String mPrivateKey;
+  private String mPublicKeyE;
+  private String mPublicKeyN;
+  private String mPrivateKeyD;
   private int mKeyLength;
 
     public AlgorithmRSA(MainWindow mContext) {
         this.mContext = mContext;
     }
   
-  
+    public String getPublicKeyE() {
+        return mPublicKeyE;
+    }
+    
+    public String getPublicKeyN() {
+        return mPublicKeyN;
+    }
 
-    public String getPublicKey() {
-        return mPublicKey;
+    public String getPrivateKeyD() {
+        return mPrivateKeyD;
     }
 
 
 
-    public String getPrivateKey() {
-        return mPrivateKey;
-    }
-
-
-
   
-  public void setPublicKey(String pubKey){
-            int indexOfSpace=pubKey.indexOf(",");
-      String eString = pubKey.substring(0, indexOfSpace);
-      String nString =pubKey.substring(indexOfSpace+1);
-      BigInteger nValue = new BigInteger(nString,16);
-      BigInteger eValue = new BigInteger(eString,16);
-      n = nValue;
+  public void setPublicKeyE(String pubKeyE){
+      BigInteger eValue = new BigInteger(pubKeyE,16);
       e = eValue;
+  }
+  
+  public void setPublicKeyN(String pubKeyN){
+      BigInteger nValue = new BigInteger(pubKeyN,16);
+      n = nValue;
       
   }
   
-  public void setPrivateKey(String privKey){
-      
-      int indexOfSpace=privKey.indexOf(",");
-      String dString = privKey.substring(0, indexOfSpace);
-      String nString =privKey.substring(indexOfSpace+1);
-      BigInteger nValue = new BigInteger(nString,16);
-      BigInteger dValue = new BigInteger(dString,16);
-      n = nValue;
+  public void setPrivateKeyD(String privKeyD){
+      BigInteger dValue = new BigInteger(privKeyD,16);
       d = dValue;
-      
   }
   
   public void setKeyLength( int keyLength ){
@@ -95,8 +89,13 @@ public class AlgorithmRSA {
   
   public synchronized String decrypt(String text) {
       
-    return new String( (new BigInteger(text)).modPow(d, n).toByteArray() );
-     
+      for( char sign : text.toCharArray() ){
+          if( !Character.isDigit(sign) ){
+            return "Your input is invalid";
+          }
+      }
+
+      return new String( (new BigInteger(text)).modPow(d, n).toByteArray() );
 }
   
 
@@ -104,9 +103,7 @@ public class AlgorithmRSA {
   
  public synchronized void generateKeys(int keyLength) {
      
-    mContext.setGenerateKeysEnabled(false);
-    mContext.setStartEnabled(false);
-    mContext.setMenuEnabled(false);
+    mContext.setButtonsEnabled(false);
     setProgress(1);
     
     mKeyLength=keyLength;  
@@ -142,12 +139,12 @@ public class AlgorithmRSA {
     // generate "d" private key
     d = e.modInverse(value);
     
-    mPrivateKey= d.toString(16) +","+n.toString(16);
-    mPublicKey=  e.toString(16) +","+n.toString(16);
+    mPrivateKeyD = d.toString(16);
+    mPublicKeyE = e.toString(16);
+    mPublicKeyN = n.toString(16);
     mProgressTimer.cancel();
-    mContext.setGenerateKeysEnabled(true);
-    mContext.setStartEnabled(true);
-    mContext.setMenuEnabled(true);
+    setProgress(100);
+    mContext.setButtonsEnabled(true);
     setProgress(100);
   }
  
@@ -198,39 +195,7 @@ public class AlgorithmRSA {
    
  }
      
-     
-     
-     
- 
-
-
-
-//  public static void main(String[] args) {
-//    AlgorithmRSA rsa = new AlgorithmRSA();
-//
-//    String text1 = "aco kiedy";
-//    
-//    System.out.println("Bytes text: " + text1.getBytes());
-//    System.out.println("Length: " + text1.length());
-//
-//
-//   
-//    rsa.generateKeys(72);
-//    
-////    String pubKey = rsa.getPublicKey();
-////    String privKey = rsa.getPrivateKey();
-////   
-////    rsa.setPrivateKey(privKey);
-////    rsa.setPublicKey(pubKey);
-//    
-//    String newText=rsa.encrypt(text1);
-//    
-//    System.out.println("Encrypted text: " + newText);
-//    System.out.println("Decrypted text: " + rsa.decrypt(newText));
-//   
-//  
-//  }
-
+  
     private void setProgress(int i) {
        mContext.setProgressBar(i);
        mProgress=i;

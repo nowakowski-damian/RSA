@@ -33,7 +33,7 @@ public class RSA extends MainWindow {
     
     public RSA(){
         RSA.MODE = ENCRYPTION;
-        RSAManager=new AlgorithmRSA( (MainWindow)this );
+        RSAManager=new AlgorithmRSA( this);
     }
 
    
@@ -132,14 +132,15 @@ public class RSA extends MainWindow {
     }
     
     @Override
-    protected void savePublicKey(String directory,String key) {
+    protected void savePublicKey(String directory, String keyE, String keyN) {
 
         BufferedWriter writer = null;
         try
         {
             File file = new File(directory+"."+PUB_KEY_EXTENSION);
             writer = new BufferedWriter( new FileWriter(file));
-            writer.write( key);
+            String textFormatted=keyE+","+keyN;
+            writer.write( textFormatted);
 
         }
         catch ( IOException e)
@@ -195,10 +196,23 @@ public class RSA extends MainWindow {
     }
     
     @Override
-    protected String openPublicKey(String directory) {
+    protected String openPublicKeyE(String directory) {
        String key="";
         try {
             key= new String(Files.readAllBytes(Paths.get(directory)));
+            key= key.substring( 0, key.indexOf(",") );
+        } catch (IOException ex) {
+           showErrorWindow("Cannot open public key, try again.");
+        } 
+        return key;
+    }
+    
+    @Override
+    protected String openPublicKeyN(String directory) {
+       String key="";
+        try {
+            key= new String(Files.readAllBytes(Paths.get(directory)));
+            key= key.substring( key.indexOf(",")+1 );
         } catch (IOException ex) {
            showErrorWindow("Cannot open public key, try again.");
         } 
@@ -225,9 +239,11 @@ public class RSA extends MainWindow {
             @Override
             public void run() {
                 RSAManager.generateKeys(keyLength);
-                setPublicKey(  RSAManager.getPublicKey() );
-                setPrivateKey( RSAManager.getPrivateKey() );
+                setPublicKeyE(  RSAManager.getPublicKeyE() );
+                setPublicKeyN(  RSAManager.getPublicKeyN() );
+                setPrivateKeyD( RSAManager.getPrivateKeyD() );
             }
+            
         }).start();
  
     }
@@ -236,11 +252,11 @@ public class RSA extends MainWindow {
 
     
     @Override
-    protected String startRSA(String key, String inputText) {
+    protected String startRSA(String keyEorD, String keyN, String inputText) {
         
         
         // Check data correctness
-        if( key.isEmpty() || !key.contains(",") || key.length()<10 ){
+        if( keyEorD.length()<8 || keyN.length()<10 ){
             showErrorWindow("Your key is invalid.");
             return "";
         }
@@ -253,18 +269,19 @@ public class RSA extends MainWindow {
         // if data are correct, continue
         
        String out="";
+       RSAManager.setPublicKeyN(keyN);
         
         switch(MODE){
             
             case ENCRYPTION:
                 
-                RSAManager.setPublicKey(key);
+                RSAManager.setPublicKeyE(keyEorD);
                 out=RSAManager.encrypt(inputText);
                 break;
                 
             case DECRYPTION:
                 
-                RSAManager.setPrivateKey(key);
+                RSAManager.setPrivateKeyD(keyEorD);
                 out=RSAManager.decrypt(inputText);
                 break;
                 

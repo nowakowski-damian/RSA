@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package com.thirteendolars.windows;
 
 import javax.swing.JSpinner;
@@ -17,7 +12,7 @@ public class KeyLengthSpinner extends JSpinner{
     public KeyLengthSpinner(){
         super();
         ( (DefaultEditor)this.getEditor() ).getTextField().setEditable(false);
-        this.setValue(256);
+        this.setValue(1024);
     }
     
     

@@ -7,17 +7,10 @@ package com.thirteendolars.windows;
 
 import java.awt.Color;
 import java.awt.Desktop;
-import java.awt.Dimension;
 import java.awt.Font;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.io.IOException;
 import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.ImageIcon;
 
 /**
@@ -26,7 +19,7 @@ import javax.swing.ImageIcon;
  */
 public class InfoDialog extends javax.swing.JDialog implements MouseListener {
 
-    private final String EMAIL = "thirteendollars.com@gmail.com";
+    private final String EMAIL = "damian.nowakowski@aol.com";
     private final String WEBSITE = "www.student.agh.edu.pl/damiann";
     private final String GITHUB = "www.github.com/thirteendollars/RSA";
     private final String CONTENT = "RSA encryption/decryption desktop application has been written by me "
@@ -101,7 +94,7 @@ public class InfoDialog extends javax.swing.JDialog implements MouseListener {
         layout.setHorizontalGroup(
                 layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                 .addGroup(layout.createSequentialGroup()
-                        .addComponent(imageLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 187, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(imageLabel, 187, 187, 187)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGap(55, 55, 55)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -116,7 +109,7 @@ public class InfoDialog extends javax.swing.JDialog implements MouseListener {
         );
         layout.setVerticalGroup(
                 layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                .addComponent(imageLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 345, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(imageLabel, 345, 345, 345)
                 .addGroup(layout.createSequentialGroup()
                         .addGap(16, 16, 16)
                         .addComponent(tittleLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 42, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -165,29 +158,18 @@ public class InfoDialog extends javax.swing.JDialog implements MouseListener {
         } else if (e.getSource() == githubLabel) {
             openURL(GITHUB);
         }
-
     }
-
     @Override
     public void mousePressed(MouseEvent e) {
-
     }
-
     @Override
     public void mouseReleased(MouseEvent e) {
-
     }
-
     @Override
     public void mouseEntered(MouseEvent e) {
-
     }
-
     @Override
     public void mouseExited(MouseEvent e) {
-
     }
-
-
 
 }
