@@ -13,15 +13,16 @@ import java.io.File;
 import javax.swing.GroupLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JOptionPane;
 import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
-import javax.swing.JTextField;
 import javax.swing.LayoutStyle;
 import javax.swing.SwingConstants;
 import javax.swing.WindowConstants;
@@ -33,6 +34,10 @@ import javax.swing.WindowConstants;
 public abstract class MainWindow extends JFrame implements ActionListener {
 
     private static final long serialVersionUID = 1L;
+    private static final int EN_LANGUAGE = 100;
+    private static final int PL_LANGUAGE = 101;
+    
+    private static int languageMode;
     private FileChooserDialog chooseDialog;
 
     private JButton generateKeyButton;
@@ -60,7 +65,10 @@ public abstract class MainWindow extends JFrame implements ActionListener {
 
     private JMenuBar jMenuBar1;
     private JButton infoMenu;
-
+    private JMenu languageChoose;
+    private JCheckBoxMenuItem plLanguageMenuItem;
+    private JCheckBoxMenuItem enLanguageMenuItem;
+    
     private JProgressBar progressBar;
 
     private JScrollPane jScrollPane1;
@@ -71,9 +79,9 @@ public abstract class MainWindow extends JFrame implements ActionListener {
     private JTextArea inputTextArea;
     private JTextArea outputTextArea;
 
-    private JTextField publicKeyETextField;
-    private JTextField publicKeyNTextField;
-    private JTextField privateKeyTextField;
+    private JTextArea publicKeyETextField;
+    private JTextArea publicKeyNTextField;
+    private JTextArea privateKeyTextField;
     
     private JScrollPane publicKeyETextScroll;
     private JScrollPane publicKeyNTextScroll;
@@ -81,13 +89,14 @@ public abstract class MainWindow extends JFrame implements ActionListener {
          
 
     public MainWindow() {
+        languageMode=EN_LANGUAGE;
         createMainViews();
+        setProperText();
         setColors();
         setActionsListeners();
         chooseDialog = new FileChooserDialog(this);
         this.setLocationRelativeTo(null);
-        this.setMinimumSize(new Dimension(850, 550));
-        this.setTitle("RSA Simulator");
+        this.setMinimumSize(new Dimension(900, 600));
     }
     
     
@@ -117,17 +126,23 @@ public abstract class MainWindow extends JFrame implements ActionListener {
         privKeyLabel = new JLabel();
         savePrivKeyButton = new JButton();
         privKeyFromFileButton = new JButton();
-        publicKeyETextField = new JTextField();
-        publicKeyNTextField = new JTextField();
-        privateKeyTextField = new JTextField();
+        publicKeyETextField = new JTextArea();
+        publicKeyNTextField = new JTextArea();
+        privateKeyTextField = new JTextArea();
         privateKeyTextScroll = new JScrollPane(privateKeyTextField);
-        privateKeyTextScroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+        privateKeyTextScroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+        privateKeyTextScroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         publicKeyETextScroll = new JScrollPane(publicKeyETextField);
-        publicKeyETextScroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+        publicKeyETextScroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+        publicKeyETextScroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         publicKeyNTextScroll = new JScrollPane(publicKeyNTextField);
-        publicKeyNTextScroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+        publicKeyNTextScroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+        publicKeyNTextScroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         jMenuBar1 = new JMenuBar();
         infoMenu = new JButton();
+        languageChoose = new JMenu();
+        plLanguageMenuItem = new JCheckBoxMenuItem();
+        enLanguageMenuItem = new JCheckBoxMenuItem();
         swapIcon = new JLabel(new ImageIcon(MainWindow.class.getResource("/swap_icon.png")));
         inputCleanIcon = new JLabel(new ImageIcon(MainWindow.class.getResource("/clean_icon.png")));
         outputCleanIcon = new JLabel(new ImageIcon(MainWindow.class.getResource("/clean_icon.png")));
@@ -135,62 +150,40 @@ public abstract class MainWindow extends JFrame implements ActionListener {
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 
         inputLabel.setFont(new java.awt.Font("Noto Sans", 1, 14)); // NOI18N
-        inputLabel.setText("Input");
-
-        inSaveToFileButton.setText("Save...");
-
-        inOpenFromFileButton.setText("Open...");
-
-        inputTextArea.setColumns(20);
-        inputTextArea.setRows(5);
+              
+        publicKeyETextField.setWrapStyleWord(true);
+        publicKeyETextField.setLineWrap(true);
+        publicKeyNTextField.setWrapStyleWord(true);
+        publicKeyNTextField.setLineWrap(true);
+        privateKeyTextField.setWrapStyleWord(true);
+        privateKeyTextField.setLineWrap(true);
+        
         inputTextArea.setLineWrap(true);
         inputTextArea.setWrapStyleWord(true);
         jScrollPane1.setViewportView(inputTextArea);
 
-        outputTextArea.setColumns(20);
-        outputTextArea.setRows(5);
         outputTextArea.setLineWrap(true);
         outputTextArea.setWrapStyleWord(true);
         jScrollPane2.setViewportView(outputTextArea);
 
         outputLabel.setFont(new java.awt.Font("Noto Sans", 1, 14)); // NOI18N
-        outputLabel.setText("Output");
-
-        outSaveToFileButton.setText("Save...");
-
         statusLabel.setHorizontalAlignment(SwingConstants.CENTER);
-        statusLabel.setText("Status");
-
-        startEncryptionButton.setText("START ENCRYPTION");
-        startDecryptionButton.setText("START DECRYPTION");
-
         generateKeysLabel.setFont(new java.awt.Font("Noto Sans", Font.BOLD, 14)); // NOI18N
-        generateKeysLabel.setText("Generate your own keys");
-
-        keyLengthLabel.setText("Length [bits]");
-
-        generateKeyButton.setText("Generate");
         generateKeyButton.setForeground( new Color(0,120,0) );
-
         pubKeyLabel.setFont(new java.awt.Font("Noto Sans", 1, 14)); // NOI18N
-        pubKeyLabel.setText("Public Key (e,n)");
-
-        pubKeyFromFileButton.setText("Open...");
-
-        savePubKeyButton.setText("Save...");
-
         privKeyLabel.setFont(new java.awt.Font("Noto Sans", 1, 14)); // NOI18N
-        privKeyLabel.setText("Private Key (d)");
-
-        savePrivKeyButton.setText("Save...");
-
-        privKeyFromFileButton.setText("Open...");
-
-        infoMenu.setText(" Info");
+        
         infoMenu.setContentAreaFilled(false);
         infoMenu.setBorder(null);
         infoMenu.setAlignmentY(0.6f);
-
+        
+        enLanguageMenuItem.setText("EN");
+        plLanguageMenuItem.setText("PL");
+        languageChoose.add(enLanguageMenuItem);
+        languageChoose.add(plLanguageMenuItem);
+        plLanguageMenuItem.setState(false);
+        enLanguageMenuItem.setState(true);
+        jMenuBar1.add(languageChoose);
         jMenuBar1.add(infoMenu);
         setJMenuBar(jMenuBar1);
 
@@ -296,16 +289,16 @@ public abstract class MainWindow extends JFrame implements ActionListener {
                                                 .addComponent(savePubKeyButton)
                                                 .addComponent(pubKeyLabel))
                                         .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                                        .addComponent(publicKeyETextScroll, GroupLayout.PREFERRED_SIZE, 42, GroupLayout.PREFERRED_SIZE)
+                                        .addComponent(publicKeyETextScroll, GroupLayout.PREFERRED_SIZE, 65, GroupLayout.PREFERRED_SIZE)
                                         .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                                        .addComponent(publicKeyNTextScroll, GroupLayout.PREFERRED_SIZE, 42, GroupLayout.PREFERRED_SIZE)
+                                        .addComponent(publicKeyNTextScroll, GroupLayout.PREFERRED_SIZE, 65, GroupLayout.PREFERRED_SIZE)
                                         .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
                                         .addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
                                                 .addComponent(savePrivKeyButton)
                                                 .addComponent(privKeyFromFileButton)
                                                 .addComponent(privKeyLabel, GroupLayout.PREFERRED_SIZE, 31, GroupLayout.PREFERRED_SIZE))
                                         .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                                        .addComponent(privateKeyTextScroll, GroupLayout.PREFERRED_SIZE, 42, GroupLayout.PREFERRED_SIZE))
+                                        .addComponent(privateKeyTextScroll, GroupLayout.PREFERRED_SIZE, 65, GroupLayout.PREFERRED_SIZE))
                                 .addComponent(jScrollPane2))
                         .addGap(32, 32, 32))
         );
@@ -326,6 +319,8 @@ public abstract class MainWindow extends JFrame implements ActionListener {
         startDecryptionButton.addActionListener(this);
         pubKeyFromFileButton.addActionListener(this);
         infoMenu.addActionListener(this);
+        plLanguageMenuItem.addActionListener(this);
+        enLanguageMenuItem.addActionListener(this);
         swapIcon.addMouseListener(new MouseListener() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -468,6 +463,18 @@ public abstract class MainWindow extends JFrame implements ActionListener {
         else if (e.getSource() == infoMenu) {
             new InfoDialog(MainWindow.this).setVisible(true);
         }
+        else if (e.getSource() == plLanguageMenuItem) {
+            plLanguageMenuItem.setState(true);
+            enLanguageMenuItem.setState(false);
+            languageMode=PL_LANGUAGE;
+            setProperText();
+        }
+        else if (e.getSource() == enLanguageMenuItem) {
+            plLanguageMenuItem.setState(false);
+            enLanguageMenuItem.setState(true);
+            languageMode=EN_LANGUAGE;
+            setProperText();
+        }
 
     }
 
@@ -558,6 +565,45 @@ public abstract class MainWindow extends JFrame implements ActionListener {
         publicKeyNTextField.setBackground( new Color(240,240,240,255) );
         privateKeyTextField.setBackground( new Color(240,240,240,255) );
         getContentPane().setBackground( new Color(220,225,220,255) );
+    }
+
+
+    private void setProperText() {
+        
+        String [] enLanguage={"RSA Simulator","Input","Save...","Open...","Output","Save...","Status","START ENCRYPTION","START DECRYPTION",
+            "Generate your own keys","Length [bits]","Generate","Public Key (e,n)","Open...","Save...","Private Key (d)","Save...","Open...",
+            " Info","Language"};
+        String [] plLanguage={"Symulator RSA","Wejście","Zapisz...","Otwórz...","Wyjście","Zapisz...","Status","SZYFRUJ","ROZSZYFRUJ",
+            "Generuj klucze automatycznie","Długość [bity]","Generuj","Klucz publiczny (e,n)","Otwórz...","Zapisz...","Klucz prywatny (d)","Zapisz...","Otwórz...",
+            " Info","Język"};
+        
+        
+        String[] language;
+        switch(languageMode){
+            case PL_LANGUAGE: language=plLanguage; break;
+            default: language=enLanguage;
+        }
+        
+        this.setTitle( language[0] );
+        inputLabel.setText( language[1] );
+        inSaveToFileButton.setText( language[2] );
+        inOpenFromFileButton.setText( language[3] );
+        outputLabel.setText( language[4] );
+        outSaveToFileButton.setText( language[5] );
+        statusLabel.setText( language[6] );
+        startEncryptionButton.setText( language[7] );
+        startDecryptionButton.setText( language[8] );
+        generateKeysLabel.setText( language[9] );
+        keyLengthLabel.setText( language[10] );
+        generateKeyButton.setText( language[11] );
+        pubKeyLabel.setText( language[12] );
+        pubKeyFromFileButton.setText( language[13] );
+        savePubKeyButton.setText( language[14] );
+        privKeyLabel.setText( language[15] );
+        savePrivKeyButton.setText( language[16] );
+        privKeyFromFileButton.setText( language[17] );
+        infoMenu.setText( language[18] );
+        languageChoose.setText( language[19] );
     }
     
     
